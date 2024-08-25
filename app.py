@@ -25,7 +25,10 @@ class Helloworld(Resource):
         args = person_put_args.parse_args()
         people[name] = args
         return people[name], 201
-    
+
+tree = {}
+
+
 class CourseQuery(Resource):
 
     def get(self, course_name):
@@ -62,7 +65,7 @@ class CourseQuery(Resource):
                 "code": course_name,
                 "full_name": full_name
             }
-
+    
 
 api.add_resource(Helloworld, "/helloworld/<string:name>")
 api.add_resource(CourseQuery, "/course/<string:course_name>")
