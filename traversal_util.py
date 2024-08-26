@@ -25,6 +25,9 @@ class CourseNode():
             self.full_name = full_name
             self.index = None
 
+        self.marked = False
+        self.completed = False
+
         self.children = []
 
 
@@ -273,9 +276,6 @@ def create_tree(
         and_node = CourseNode(label="AND", index=index, full_name=None, code=None)
         common_node = and_node
 
-        # append it to the parent's array
-        parent_node.children.append(and_node)
-
         # find its children dicts
         children_dicts = session.execute_read(
             find_and_children,
@@ -362,9 +362,56 @@ def create_tree(
                 )
         if not children_dicts:
             return
-        
-        
 
+
+"""
+mark_completion
+Check and mark the completion of a course and junction nodes.
+
+TODO:
+- Test this function
+
+"""
+def mark_completion(root: CourseNode, completed_courses_list: list[str]):
+    completed_courses = completed_courses_set(completed_courses_list)
+
+    def mark_completed_courses(node: CourseNode):
+        if node.label == "Course":
+            node.completed = node.code in completed_courses
+        for child in node.children:
+            mark_completed_courses(child)
+
+    def update_parents(node: CourseNode):
+        # First, recursively update all children
+        for child in node.children:
+            update_parents(child)
+        
+        # Then, update the current node based on its children
+        if node.label == "OR":
+            node.marked = any(child.completed or child.marked for child in node.children)
+        elif node.label == "AND":
+            # This line marks the node as true if all children are either completed or marked
+            # It doesn't restrict children to be only all marked or all completed
+            # Instead, it allows for a mix of completed and marked children
+            node.marked = all(child.completed or child.marked for child in node.children)
+        elif node.label == "Course":
+            # A course is marked if it's completed or if all its children are marked
+            node.marked = node.completed or (node.children and all(child.marked for child in node.children))
+
+    # Step 1: Mark completed courses
+    mark_completed_courses(root)
+
+    # Step 2: Update parent nodes from bottom up
+    update_parents(root)
+
+"""
+completed_courses_set
+
+simply converts the list of completed courses into a set. Used in mark_completion as a helper function
+"""
+def completed_courses_set(completed_courses_list: list[str]):
+    completed_courses = set(completed_courses_list)
+    return completed_courses
 
 # BFS works on this, but still don't know how to do the proper visualization yet
 def tree_visualization(root: CourseNode):
