@@ -428,6 +428,9 @@ def tree_visualization(root: CourseNode):
         print("\n")
 
 
+"""
+Convert from CourseNode tree to a dictionary for JSON serialization
+"""
 def course_node_to_dict(node: CourseNode):
     node_dict = {
         "label": node.label,
@@ -446,6 +449,8 @@ def course_node_to_dict(node: CourseNode):
         for child in node.children:
             node_dict["children"].append(course_node_to_dict(child))
     
+    return node_dict
+
 
 # """
 # Commonality Algorithm

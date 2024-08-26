@@ -12,6 +12,7 @@ class Neo4jConn:
         self._driver = GraphDatabase.driver(URI, auth=AUTH)
         self._driver.verify_connectivity()
     
+    
     def close(self):
         self._driver.close()
 

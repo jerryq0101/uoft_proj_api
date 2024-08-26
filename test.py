@@ -10,6 +10,7 @@
 # print(response.json())
 
 # Testing the traversal utilieis of the api
+import pprint
 
 from collections import defaultdict
 import os
@@ -92,7 +93,7 @@ def main():
                 session=session
             )
             dict = course_node_to_dict(parent1)
-            print(tree_visualization(parent1))
+            pprint.pprint(dict)
 
 
 
