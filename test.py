@@ -11,10 +11,11 @@
 
 # Testing the traversal utilieis of the api
 
+from collections import defaultdict
 import os
 from dotenv import load_dotenv, dotenv_values
 
-from traversal_util import (CourseNode, create_tree, tree_visualization, mark_completion, get_commonality)
+from traversal_util import (CourseNode, create_tree, tree_visualization, mark_completion, course_node_to_dict)
 load_dotenv()
 
 from neo4j import GraphDatabase
@@ -35,42 +36,64 @@ def main():
             # Test it out with a tree
             
 
-            # Create a parent node
+            # # Create a parent node
+            # parent1 = CourseNode(
+            #     label="Course",
+            #     code="MAT351Y1",
+            #     full_name= "MAT351Y1: Partial Differential Equations",
+            #     index=None
+            # )
+            # create_tree(
+            #     parent_node=parent1,
+            #     root_course_string="MAT351Y1",
+            #     label="AND",
+            #     code=None,
+            #     full_name=None,
+            #     index=181,
+            #     session=session
+            # )
+            
+            # parent2 = CourseNode(
+            #     label="Course",
+            #     code="CSC446H1",
+            #     full_name="CSC446H1: Computational Methods for Partial Differential Equations",
+            #     index=None
+            # )
+            # create_tree(
+            #     parent_node=parent2,
+            #     root_course_string="CSC446H1",
+            #     label="AND",
+            #     code=None,
+            #     full_name=None,
+            #     index=175,
+            #     session=session
+            # )
+            # trees = {
+            #     "MAT351Y1": parent1, 
+            #     "CSC446H1": parent2
+            # }
+            # commonality = get_commonality(trees)
+            # print(commonality)
+
+
             parent1 = CourseNode(
                 label="Course",
-                code="MAT351Y1",
-                full_name= "MAT351Y1: Partial Differential Equations",
+                code="MAT136H1",
+                full_name= "MAT136H1: Calculus II",
                 index=None
             )
             create_tree(
                 parent_node=parent1,
-                root_course_string="MAT351Y1",
+                root_course_string="MAT136H1",
                 label="AND",
                 code=None,
                 full_name=None,
-                index=181,
+                index=5,
                 session=session
             )
-            
-            parent2 = CourseNode(
-                label="Course",
-                code="CSC446H1",
-                full_name="CSC446H1: Computational Methods for Partial Differential Equations",
-                index=None
-            )
-            create_tree(
-                parent_node=parent2,
-                root_course_string="CSC446H1",
-                label="AND",
-                code=None,
-                full_name=None,
-                index=175,
-                session=session
-            )
-            trees = [parent1, parent2]
-            commonality = get_commonality(trees)
-            
-            
+            dict = course_node_to_dict(parent1)
+            print(tree_visualization(parent1))
+
 
 
 

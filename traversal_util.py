@@ -236,19 +236,6 @@ def create_tree(
     Replicates the tree structure of the course prerequisites
     """
 
-    # check if this is a junction or a course
-        # if it is a course:
-        # create a course code object, add it to the parent children list
-        # Find its children and call this function for each child
-            # Find its children by seeking the (c:Course {code: $code})-[:Contains {root: $root}]->(something) relationship 
-            # do processing for the list of children
-
-        # if it is a junction (AND / OR)
-        # create a junction object, add it to the parent children list
-        # Find its children and call this function for each child
-            # Find its children by seeking the (a:AND {index: $index})-[:Contains {root: $root}]->(something) relationship
-            # do processing for its children
-
     children_dicts = []
 
     common_node = None
@@ -274,6 +261,9 @@ def create_tree(
         # Current node
         and_node = CourseNode(label="AND", index=index, full_name=None, code=None)
         common_node = and_node
+
+        # append it parent's array
+        parent_node.children.append(and_node)
 
         # find its children dicts
         children_dicts = session.execute_read(
@@ -438,46 +428,109 @@ def tree_visualization(root: CourseNode):
         print("\n")
 
 
-"""
-Commonality Algorithm
+def course_node_to_dict(node: CourseNode):
+    node_dict = {
+        "label": node.label,
+        "marked": node.marked,
+        "completed": node.completed,
+    }
 
-Algorithm to find the top most common course nodes between different courses.
+    if node.label == "Course":
+        node_dict["code"] = node.code
+        node_dict["full_name"] = node.full_name
+    else:
+        node_dict["index"] = node.index
+    
+    if node.children:
+        node_dict["children"] = []
+        for child in node.children:
+            node_dict["children"].append(course_node_to_dict(child))
+    
 
-CONSIDER (using the non full prerequisite tree instead to do these checks) - it felt so slow ngl, 
-* Check if there are other optimizations
+# """
+# Commonality Algorithm
 
-TODO: For this
-- Does this commonality algorithm work in practice? Assumption of if its dominant node in one tree, does it mean its also dominant in the other tree?
-- The purpose of this is to find commonality between the prerequisites trees of different courses.
+# Algorithm to find the top most common course nodes between different courses.
 
+# CONSIDER (using the non full prerequisite tree instead to do these checks)  
+# * Check if there are other optimizations
 
-Logic: If at the top level there is common course node, then their children are also common, so we just care about the top level.
-
-Actually here is what I need for a commonality algorithm.
-
-Find the list of common nodes in CourseNode trees. (just do convert all a tree's node into list form, then do a set intersection)
-
-Reduce common nodes between specific trees to the "dominant" nodes that cover the largest area for each tree.
-(Effectively checking if different common nodes contain each other) 
-
-Also check if one course tree contains another course tree entirely. => If it does its over. 
-
-label these common nodes between specific trees unique colors
-
-"""
+# TODO: For this
+# - Does this commonality algorithm work in practice? Assumption of if its dominant node in one tree, does it mean its also dominant in the other tree?
+# - The purpose of this is to find commonality between the prerequisites trees of different courses. Simple maybe best? 
 
 
-# Example usage:
-# trees = [course_a_tree, course_b_tree, course_c_tree]
-# commonality = get_commonality(trees)
-# for course, data in commonality.items():
-#     print(f"Common course: {course}")
-#     print(f"Color: RGB{data['color']}")
-#     print(f"Appears in trees: {data['trees']}")
-#     print("Nodes:", [node.code for node in data['nodes']])
-#     print()
+# What I'd think the algorithm should be like:
 
-# Example usage:
-# trees = [course_a_tree, course_b_tree, course_c_tree]
-# course_names = ["Course A", "Course B", "Course C"]
-# present_commonality(trees, course_names)
+# Get all CourseNodes in each tree via traversal.
+
+# Nested for loops scan for commonality of courseNodes.code s 
+
+# Check for containment (when n1 is an ancestor of n2 in both trees, which likely usually will be the case that containment will be parallel in different trees) 
+
+# Logic for check for containment 
+
+# - if containment and there is no other instance of n2 outside of n1: then safely discard n2 as a repetitive commonality course node
+
+# - if contaiment and there are instances of n2 outside of n1: then mark n2 as a prerequisite of n1 but don't discard the commonality course node
+
+# - "outside" is defined n1 being the ancestor of n2
+
+# (Although I talk here as commonality lists in tree pairs, I would like there to full consideration of commonality lists for all trees. E.g. this node might appear in A B C, this node might appear in A C...)
+
+# """
+
+# from collections import defaultdict
+
+# def get_all_course_nodes(root):
+#     nodes = []
+#     def traverse(node):
+#         if node.label == "Course":
+#             nodes.append(node)
+#         for child in node.children:
+#             traverse(child)
+#     traverse(root)
+#     return nodes
+
+# def is_ancestor(ancestor, descendant):
+#     if ancestor == descendant:
+#         return True
+#     for child in ancestor.children:
+#         if is_ancestor(child, descendant):
+#             return True
+#     return False
+
+# def get_commonality(trees):
+#     all_nodes = {tree_name: get_all_course_nodes(tree) for tree_name, tree in trees.items()}
+#     common_courses = defaultdict(lambda: {'nodes': [], 'trees': set()})
+
+#     for tree_name, nodes in all_nodes.items():
+#         for node in nodes:
+#             common_courses[node.code]['nodes'].append(node)
+#             common_courses[node.code]['trees'].add(tree_name)
+
+#     # Filter out courses that appear in only one tree
+#     common_courses = {code: data for code, data in common_courses.items() if len(data['trees']) > 1}
+
+#     # Check for containment
+#     for course, data in common_courses.items():
+#         for tree_name in data['trees']:
+#             nodes_in_tree = [node for node in data['nodes'] if node in all_nodes[tree_name]]
+#             for i, node1 in enumerate(nodes_in_tree):
+#                 for node2 in nodes_in_tree[i+1:]:
+#                     if is_ancestor(node1, node2):
+#                         # Check if node2 appears outside of node1 in any tree
+#                         appears_outside = any(
+#                             not is_ancestor(n1, n2) 
+#                             for t in data['trees'] 
+#                             for n1, n2 in zip(
+#                                 [n for n in data['nodes'] if n in all_nodes[t] and n.code == node1.code],
+#                                 [n for n in data['nodes'] if n in all_nodes[t] and n.code == node2.code]
+#                             )
+#                         )
+#                         if not appears_outside:
+#                             data['nodes'].remove(node2)
+#                         else:
+#                             node2.is_prerequisite_of = node1
+
+#     return common_courses
