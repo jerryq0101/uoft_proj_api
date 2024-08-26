@@ -14,7 +14,7 @@
 import os
 from dotenv import load_dotenv, dotenv_values
 
-from traversal_util import (CourseNode, create_tree, tree_visualization, mark_completion)
+from traversal_util import (CourseNode, create_tree, tree_visualization, mark_completion, get_commonality)
 load_dotenv()
 
 from neo4j import GraphDatabase
@@ -29,46 +29,49 @@ def main():
 
         with driver.session(database="neo4j") as session:
             
-            # if I call function through an class object it fucks up, 
-            # Is a class even necessary? 
-            # change the class to a purely utility based class
-
-            # session.execute_read(
-            #     TraversalUtilities.find_course_children, 
-            #     "MAT354H1",
-            #     "",
-            #     "MAT354H1"
-            # )
-
-            # print(session.execute_read(
-            #     TraversalUtilities.find_or_children,
-            #     "OR",
-            #     26,
-            #     "STA302H1"
-            # ))
             
             # Test traversal for first level prerequisites (Where relationships are all, -[c:Contains {root: root_code}]->, root_code doens't change)
             
+            # Test it out with a tree
+            
+
             # Create a parent node
-            # parent = CourseNode(
-            #     label="Course",
-            #     code="MAT334H1",
-            #     full_name="MAT334H1: Complex Variables",
-            #     index=None
-            # )
-            # create_tree(
-            #     parent_node=parent,
-            #     root_course_string="MAT334H1",
-            #     label="AND",
-            #     code=None,
-            #     full_name=None,
-            #     index=184,
-            #     session=session
-            # )
+            parent1 = CourseNode(
+                label="Course",
+                code="MAT351Y1",
+                full_name= "MAT351Y1: Partial Differential Equations",
+                index=None
+            )
+            create_tree(
+                parent_node=parent1,
+                root_course_string="MAT351Y1",
+                label="AND",
+                code=None,
+                full_name=None,
+                index=181,
+                session=session
+            )
             
-            # tree_visualization(parent)
+            parent2 = CourseNode(
+                label="Course",
+                code="CSC446H1",
+                full_name="CSC446H1: Computational Methods for Partial Differential Equations",
+                index=None
+            )
+            create_tree(
+                parent_node=parent2,
+                root_course_string="CSC446H1",
+                label="AND",
+                code=None,
+                full_name=None,
+                index=175,
+                session=session
+            )
+            trees = [parent1, parent2]
+            commonality = get_commonality(trees)
             
-            test_mark_completion()
+            
+
 
 
 def test_mark_completion():

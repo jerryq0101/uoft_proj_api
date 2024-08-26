@@ -84,7 +84,6 @@ find_course_children
 3. Returns the array full of them
 
 """
-
 def find_course_children(
         tx, 
         code: str, 
@@ -207,6 +206,7 @@ def find_or_children(tx, label, index, root_code):
 
     return children_dicts
 
+
 """
 create_tree
 
@@ -221,7 +221,6 @@ Instance Variables:
     # For a junction:
     - index
 """
-
 def create_tree(
         parent_node: CourseNode, 
         root_course_string: str,
@@ -368,9 +367,6 @@ def create_tree(
 mark_completion
 Check and mark the completion of a course and junction nodes.
 
-TODO:
-- Test this function
-
 """
 def mark_completion(root: CourseNode, completed_courses_list: list[str]):
     completed_courses = completed_courses_set(completed_courses_list)
@@ -404,6 +400,7 @@ def mark_completion(root: CourseNode, completed_courses_list: list[str]):
     # Step 2: Update parent nodes from bottom up
     update_parents(root)
 
+
 """
 completed_courses_set
 
@@ -412,6 +409,7 @@ simply converts the list of completed courses into a set. Used in mark_completio
 def completed_courses_set(completed_courses_list: list[str]):
     completed_courses = set(completed_courses_list)
     return completed_courses
+
 
 # BFS works on this, but still don't know how to do the proper visualization yet
 def tree_visualization(root: CourseNode):
@@ -438,3 +436,48 @@ def tree_visualization(root: CourseNode):
             queue.append((child, count+1))
 
         print("\n")
+
+
+"""
+Commonality Algorithm
+
+Algorithm to find the top most common course nodes between different courses.
+
+CONSIDER (using the non full prerequisite tree instead to do these checks) - it felt so slow ngl, 
+* Check if there are other optimizations
+
+TODO: For this
+- Does this commonality algorithm work in practice? Assumption of if its dominant node in one tree, does it mean its also dominant in the other tree?
+- The purpose of this is to find commonality between the prerequisites trees of different courses.
+
+
+Logic: If at the top level there is common course node, then their children are also common, so we just care about the top level.
+
+Actually here is what I need for a commonality algorithm.
+
+Find the list of common nodes in CourseNode trees. (just do convert all a tree's node into list form, then do a set intersection)
+
+Reduce common nodes between specific trees to the "dominant" nodes that cover the largest area for each tree.
+(Effectively checking if different common nodes contain each other) 
+
+Also check if one course tree contains another course tree entirely. => If it does its over. 
+
+label these common nodes between specific trees unique colors
+
+"""
+
+
+# Example usage:
+# trees = [course_a_tree, course_b_tree, course_c_tree]
+# commonality = get_commonality(trees)
+# for course, data in commonality.items():
+#     print(f"Common course: {course}")
+#     print(f"Color: RGB{data['color']}")
+#     print(f"Appears in trees: {data['trees']}")
+#     print("Nodes:", [node.code for node in data['nodes']])
+#     print()
+
+# Example usage:
+# trees = [course_a_tree, course_b_tree, course_c_tree]
+# course_names = ["Course A", "Course B", "Course C"]
+# present_commonality(trees, course_names)
