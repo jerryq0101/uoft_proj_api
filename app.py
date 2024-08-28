@@ -1,7 +1,7 @@
 from flask import Flask, request, abort, jsonify
 from flask_restful import Api, Resource, reqparse
 from neo4j_conn import Neo4jConn
-from traversal_util import CourseNode, create_tree, mark_completion, course_node_to_dict
+from traversal_util import CourseNode, create_full_tree_from_apoc, create_prerequisite_tree_from_apoc, mark_completion, course_node_to_dict
 
 app = Flask(__name__)
 api = Api(app)
@@ -71,8 +71,6 @@ class CourseQuery(Resource):
 
     @app.route("/course/")
     def post(self):
-        # args = multiple_course_put_args.parse_args()
-        # print(args.completed_courses)
 
         data = request.json
         if not data:
@@ -80,55 +78,22 @@ class CourseQuery(Resource):
         
         completed_courses = data.get("completed_courses", [])
         desired_courses = data.get("desired_courses", [])
+        tree_choice = data.get("tree_choice", "full")
 
         arr_of_dicts = []
 
         with neo4j._driver.session() as session:
             for course in desired_courses:
-                # I can store the output.py file in the frontend.
-                parent_node = CourseNode(
-                    label="Course",
-                    code=course,
-                    full_name=None,
-                    index=None
-                )
-
-                # Find the direct AND index
-                result = session.run(
-                    """
-                    MATCH (c:Course {code: $code})-[:Contains {root: $root}]->(a:AND)
-                    RETURN a.index as index
-                    """,
-                    code=course,
-                    root=course
-                )
-                temp = result.value()
-                if temp == []:
-                    arr_of_dicts.append({
-                        "label": "Course",
-                        "code": course,
-                        "full_name": None,
-                        "index": None,
-                        "children": [],
-                        "completed": course in completed_courses
-                    })
-                else: 
-                    direct_and_index = temp[0]
-                    
-                    create_tree(
-                        parent_node=parent_node,
-                        root_course_string=course,
-                        label="AND",
-                        code=None,
-                        full_name=None,
-                        index=direct_and_index,
-                        session=session
-                    )
-                    mark_completion(parent_node, completed_courses)
-                    
-                    dict_of_node = course_node_to_dict(parent_node)
+                if tree_choice == "full":
+                    tree = create_full_tree_from_apoc(session, course)
+                    mark_completion(tree, completed_courses)
+                    dict_of_node = course_node_to_dict(tree)
                     arr_of_dicts.append(dict_of_node)
-                
+                else:
+                    tree = create_prerequisite_tree_from_apoc(session, course)
+                    mark_completion(tree, completed_courses)
+                    dict_of_node = course_node_to_dict(tree)
+                    arr_of_dicts.append(dict_of_node)
         
         return {
             "course_trees": arr_of_dicts
