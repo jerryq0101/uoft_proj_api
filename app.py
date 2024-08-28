@@ -102,30 +102,36 @@ class CourseQuery(Resource):
                     code=course,
                     root=course
                 )
-                direct_and_index = result.value()[0]
+                temp = result.value()
+                if temp == []:
+                    arr_of_dicts.append({
+                        "label": "Course",
+                        "code": course,
+                        "full_name": None,
+                        "index": None,
+                        "children": [],
+                        "completed": course in completed_courses
+                    })
+                else: 
+                    direct_and_index = temp[0]
+                    
+                    create_tree(
+                        parent_node=parent_node,
+                        root_course_string=course,
+                        label="AND",
+                        code=None,
+                        full_name=None,
+                        index=direct_and_index,
+                        session=session
+                    )
+                    mark_completion(parent_node, completed_courses)
+                    
+                    dict_of_node = course_node_to_dict(parent_node)
+                    arr_of_dicts.append(dict_of_node)
                 
-                create_tree(
-                    parent_node=parent_node,
-                    root_course_string=course,
-                    label="AND",
-                    code=None,
-                    full_name=None,
-                    index=direct_and_index,
-                    session=session
-                )
-                mark_completion(parent_node, completed_courses)
-                
-                dict_of_node = course_node_to_dict(parent_node)
-                arr_of_dicts.append(dict_of_node)
-                
         
-        
-        neo4j.close()
-        
-        
-
         return {
-            "courses": arr_of_dicts
+            "course_trees": arr_of_dicts
         }, 200
     
 
