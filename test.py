@@ -31,134 +31,135 @@ def main():
 
         with driver.session(database="neo4j") as session:
             
-            
-            # Test traversal for first level prerequisites (Where relationships are all, -[c:Contains {root: root_code}]->, root_code doens't change)
-            
-            # Test it out with a tree
-            
+            dict_course = {}
+            dict_AND = {}
+            dict_OR = {}
 
-            # # Create a parent node
-            # parent1 = CourseNode(
-            #     label="Course",
-            #     code="MAT351Y1",
-            #     full_name= "MAT351Y1: Partial Differential Equations",
-            #     index=None
-            # )
-            # create_tree(
-            #     parent_node=parent1,
-            #     root_course_string="MAT351Y1",
-            #     label="AND",
-            #     code=None,
-            #     full_name=None,
-            #     index=181,
-            #     session=session
-            # )
-            
-            # parent2 = CourseNode(
-            #     label="Course",
-            #     code="CSC446H1",
-            #     full_name="CSC446H1: Computational Methods for Partial Differential Equations",
-            #     index=None
-            # )
-            # create_tree(
-            #     parent_node=parent2,
-            #     root_course_string="CSC446H1",
-            #     label="AND",
-            #     code=None,
-            #     full_name=None,
-            #     index=175,
-            #     session=session
-            # )
-            # trees = {
-            #     "MAT351Y1": parent1, 
-            #     "CSC446H1": parent2
-            # }
-            # commonality = get_commonality(trees)
-            # print(commonality)
+            dict_neo4j_all = {}
 
+            # Test apoc functions 
+            course_I_want = "MAT257Y1"
+            result = session.execute_read(run_apoc_query, course_I_want)
 
-            parent1 = CourseNode(
-                label="Course",
-                code="MAT136H1",
-                full_name= "MAT136H1: Calculus II",
-                index=None
-            )
-            create_tree(
-                parent_node=parent1,
-                root_course_string="MAT136H1",
-                label="AND",
-                code=None,
-                full_name=None,
-                index=5,
-                session=session
-            )
-            dict = course_node_to_dict(parent1)
-            pprint.pprint(dict)
+            for record in result:
+                nodes = record["nodes"]
+                relationships = record["relationships"]
 
+                parsed_nodes = [parse_node(node) for node in nodes]
+                parsed_relationships = [parse_relationship(rel) for rel in relationships]
+                
+                
+                print("Nodes:")
+                for node in parsed_nodes:
+                    print(f"  ID: {node['id']}")
+                    print(f"  Labels: {', '.join(node['labels'])}")
+                    print(f"  Properties: {node['properties']}")
+                    print()
 
+                    # Operations
+                    neo4j_id = node["id"]
+                    node_label = node["labels"][0]
+                    node_properties = node["properties"]
+                    
+                    if node_label == "Course":
+                        code = node_properties["code"]
+                        full_name = node_properties["full_name"]
+                        course_node = CourseNode(
+                            label="Course",
+                            code=code,
+                            full_name=full_name,
+                            index=None
+                        )
+                        dict_course[code] = course_node
+                        dict_neo4j_all[neo4j_id] = course_node
+                    elif node_label == "AND":
+                        index = node_properties["index"]
+                        and_node = CourseNode(
+                            label="AND",
+                            code=None,
+                            full_name=None,
+                            index=index
+                        )
+                        dict_AND[index] = and_node
+                        dict_neo4j_all[neo4j_id] = and_node
+                    elif node_label == "OR":
+                        index = node_properties["index"]
+                        or_node = CourseNode(
+                            label="OR",
+                            code=None,
+                            full_name=None,
+                            index=index
+                        )
+                        dict_OR[index] = or_node
+                        dict_neo4j_all[neo4j_id] = or_node
 
+                print("Relationships:")
+                for rel in parsed_relationships:
+                    print(f"  ID: {rel['id']}")
+                    print(f"  Type: {rel['type']}")
+                    print(f"  Start Node: {rel['start_node']}")
+                    print(f"  End Node: {rel['end_node']}")
+                    print(f"  Properties: {rel['properties']}")
+                    print()
 
-def test_mark_completion():
-    # Create the sample tree structure
-    root = CourseNode(label="Course", code="MAT334H1", full_name="Complex Variables")
-    and_node = CourseNode(label="AND", index=1)
-    root.add_child(and_node)
+                    # Operations
+                    start_node_neo4j_id = rel["start_node"]
+                    end_node_neo4j_id = rel["end_node"]
 
-    or_node1 = CourseNode(label="OR", index=2)
-    or_node2 = CourseNode(label="OR", index=3)
-    and_node.add_child(or_node1)
-    and_node.add_child(or_node2)
+                    start_node_obj = dict_neo4j_all[start_node_neo4j_id]
+                    end_node_obj = dict_neo4j_all[end_node_neo4j_id]
 
-    or_node1.add_child(CourseNode(label="Course", code="MAT223H1", full_name="Linear Algebra I"))
-    or_node1.add_child(CourseNode(label="Course", code="MAT240H1", full_name="Algebra I"))
+                    start_node_obj.add_child(end_node_obj)
 
-    or_node2.add_child(CourseNode(label="Course", code="MAT235Y1", full_name="Calculus II"))
-    or_node2.add_child(CourseNode(label="Course", code="MAT237Y1", full_name="Multivariable Calculus"))
-    or_node2.add_child(CourseNode(label="Course", code="MAT257Y1", full_name="Analysis II"))
-
-    # Test case 1: No courses completed
-    mark_completion(root, [])
-    print("Root Marked:", root.marked)
-    print("And1 Marked:", and_node.marked)
-    print("Or1 Marked:", or_node1.marked)
-    print("Or2 Marked:", or_node2.marked)
-    assert not root.marked
-    assert not and_node.marked
-    assert not or_node1.marked
-    assert not or_node2.marked
-
-    
-    # Test case 2: One course from each OR node completed
-    mark_completion(root, ["MAT223H1", "MAT235Y1"])
-    print("Root Marked:", root.marked)
-    print("And1 Marked:", and_node.marked)
-    print("Or1 Marked:", or_node1.marked)
-    print("Or2 Marked:", or_node2.marked)
-    
-    assert root.marked
-    assert and_node.marked
-    assert or_node1.marked
-    assert or_node2.marked
-
-    # Test case 3: All courses completed
-    mark_completion(root, ["MAT223H1", "MAT240H1", "MAT235Y1", "MAT237Y1", "MAT257Y1"])
-    assert root.marked
-    assert and_node.marked
-    assert or_node1.marked
-    assert or_node2.marked
-
-    # Test case 4: Only one OR node satisfied
-    mark_completion(root, ["MAT223H1"])
-    assert not root.marked
-    assert not and_node.marked
-    assert or_node1.marked
-    assert not or_node2.marked
-
-    print("All test cases passed!")
+            print("Tree:")
+            tree_visualization(dict_course[course_I_want])
 
 
-    
-    # traversal.get_first_level_children(driver) 
+def run_apoc_query(tx, course_code: str):
+    query = """
+    MATCH (start:Course {code: $course_code})
+    CALL apoc.path.subgraphAll(start, {
+        relationshipFilter: "Contains>",
+        labelFilter: "+Course|AND|OR"
+    })
+    YIELD nodes, relationships
+    RETURN nodes, relationships
+    """
+    result = tx.run(query, course_code=course_code)
+    return [record for record in result]
+
+def run_apoc_query_first_level(tx, course_code: str):
+    query = """
+    MATCH (start:Course {code: $course_code})
+    CALL apoc.path.subgraphAll(start, {
+        relationshipFilter: "Contains>",
+        labelFilter: "+Course|AND|OR"
+    })
+    YIELD nodes, relationships
+    WITH nodes, [rel IN relationships WHERE type(rel) = 'Contains' AND rel.root = $course_code] AS filtered_relationships
+    RETURN nodes, filtered_relationships AS relationships
+    """
+    result = tx.run(query, course_code=course_code)
+    return [record for record in result]
+
+
+
+def parse_node(node):
+    return {
+        "id": node.element_id,
+        "labels": list(node.labels),
+        "properties": dict(node)
+    }
+
+
+def parse_relationship(rel):
+    return {
+        "id": rel.element_id,
+        "type": rel.type,
+        "start_node": rel.nodes[0].element_id,
+        "end_node": rel.nodes[1].element_id,
+        "properties": dict(rel)
+    }
     
 
 if __name__ == "__main__":

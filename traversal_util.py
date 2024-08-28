@@ -36,32 +36,6 @@ class CourseNode():
 
 
 
-def get_first_level_children(driver):
-    """
-    Returns the first level children of the root_code
-    """
-    driver.verify_connectivity()
-    with driver.session(database="neo4j", default_access_mode=neo4j.READ_ACCESS) as session:
-        
-        # Get the first level children of the root_code
-        # current_node = root
-        result = session.run(
-            """
-            MATCH (c:Course {code: $code})-[:Contains {root: $code}]->(child)
-            RETURN child, labels(child) AS child_labels
-            """,
-            code="MAT235Y1"
-        )
-
-        result = result.value()
-        for item in result:
-            f_set_label = list(item._labels)[0]
-            print(f_set_label)
-            index = item._properties["index"]
-            print(index)
-            print(type(index))
-
-
 """
 find_course_children
 
