@@ -1,4 +1,5 @@
 import neo4j
+import itertools
 
 class CourseNode():
     """
@@ -34,151 +35,6 @@ class CourseNode():
 
     def add_child(self, child):
         self.children.append(child)
-
-
-# """
-# find_course_children
-
-# - code: course code
-# - full_name: full name of the course
-
-# - tx: run this function using session
-
-# 1. Finds children of a course node using neo4j
-# 2. Then filters the output to become dictionaries 
-#     - Course dicts: {
-#         "label": "Course",
-#         "code": $code,
-#         "full_name": $full_name
-#     }
-#     - AND / OR dicts: {
-#         "label": "AND",
-#         "index": some_int
-#     }
-# 3. Returns the array full of them
-
-# """
-# def find_course_children(
-#         tx, 
-#         code: str, 
-#         full_name: str, 
-#         root_code: str
-# ):
-    
-#     results = tx.run(
-#         """
-#             MATCH (c:Course {code: $code})-[:Contains {root: $root_code}]->(child)
-#             RETURN child, labels(child) AS child_labels
-#         """,
-#         code=code,
-#         root_code=root_code
-#     )
-
-#     results = results.value()
-
-#     # There is no need to filter this one because a prerequisite can't have an unidentified relationship with another prerequisite
-
-#     children_dicts = []
-#     for item in results:
-#         # Should I even filter this depending on the child?
-#         f_set_label = list(item._labels)[0]
-#         print(f_set_label)
-#         if f_set_label == "AND" or f_set_label == "OR":
-#             index = item._properties["index"]
-#             print(index)
-#             print(type(index))
-
-#             children_dicts.append({
-#                 "label": f_set_label,
-#                 "index": index
-#             })
-#         elif f_set_label == "Course":
-#             code = item._properties["code"]
-#             full_name = item._properties["full_name"]
-#             children_dicts.append({
-#                 "label": "Course",
-#                 "code": code,
-#                 "full_name": full_name
-#             })
-
-#     return children_dicts
-    
-
-# def find_and_children(tx, label:str, index:int, root_code:str):
-#     assert(label == "AND", "label should be AND")
-
-#     results = tx.run(
-#         """
-#             MATCH (a:AND {index: $index})-[:Contains {root: $root}]->(child)
-#             RETURN child, labels(child) AS child_labels
-#         """,
-#         index=index,
-#         root=root_code
-#     )
-#     results = results.value()
-
-#     children_dicts = []
-#     for item in results:
-#         # Should I even filter this depending on the child?
-#         f_set_label = list(item._labels)[0]
-#         print(f_set_label)
-#         if f_set_label == "AND" or f_set_label == "OR":
-#             index = item._properties["index"]
-#             print(index)
-#             print(type(index))
-
-#             children_dicts.append({
-#                 "label": f_set_label,
-#                 "index": index
-#             })
-#         elif f_set_label == "Course":
-#             code = item._properties["code"]
-#             full_name = item._properties["full_name"]
-#             children_dicts.append({
-#                 "label": "Course",
-#                 "code": code,
-#                 "full_name": full_name
-#             })
-
-#     return children_dicts
-
-
-# def find_or_children(tx, label, index, root_code):
-#     assert(label == "OR", "label should be OR")
-
-#     results = tx.run(
-#         """
-#             MATCH (o:OR {index: $index})-[:Contains {root: $root}]->(child)
-#             RETURN child, labels(child) AS child_labels
-#         """,
-#         index=index,
-#         root=root_code
-#     )
-#     results = results.value()
-
-#     children_dicts = []
-#     for item in results:
-#         # Should I even filter this depending on the child?
-#         f_set_label = list(item._labels)[0]
-#         if f_set_label == "AND" or f_set_label == "OR":
-#             index = item._properties["index"]
-#             # print(index)
-#             # print(type(index))
-
-#             children_dicts.append({
-#                 "label": f_set_label,
-#                 "index": index
-#             })
-#         elif f_set_label == "Course":
-#             code = item._properties["code"]
-#             full_name = item._properties["full_name"]
-#             children_dicts.append({
-#                 "label": "Course",
-#                 "code": code,
-#                 "full_name": full_name
-#             })
-
-#     return children_dicts
 
 
 dict_course = {}
@@ -490,90 +346,120 @@ def course_node_to_dict(node: CourseNode):
     return node_dict
 
 
-# """
-# Commonality Algorithm
+"""
+Commonality Algorithm
 
-# Algorithm to find the top most common course nodes between different courses.
-
-# CONSIDER (using the non full prerequisite tree instead to do these checks)  
-# * Check if there are other optimizations
-
-# TODO: For this
-# - Does this commonality algorithm work in practice? Assumption of if its dominant node in one tree, does it mean its also dominant in the other tree?
-# - The purpose of this is to find commonality between the prerequisites trees of different courses. Simple maybe best? 
+To mark the common courses between many different course trees.
 
 
-# What I'd think the algorithm should be like:
+Strategy:
+- List of root nodes of all course trees 
+- Find the list of course nodes that exist in every single course tree
+- For every course node, see if that same code course node exists in any other course tree
+    - set of unique course codes which map to a set containing the root nodes of the course trees that it exists in
+- Take the intersection of the different sets
+    - e.g. if I want to take the intersection of S_1, S_2. I will loop the map, and see if each item is in both S_1 and S_2
+- Take every possible intersection of different sets and make a list of the data
 
-# Get all CourseNodes in each tree via traversal.
 
-# Nested for loops scan for commonality of courseNodes.code s 
 
-# Check for containment (when n1 is an ancestor of n2 in both trees, which likely usually will be the case that containment will be parallel in different trees) 
 
-# Logic for check for containment 
+- also check if one tree is just in the other tree
 
-# - if containment and there is no other instance of n2 outside of n1: then safely discard n2 as a repetitive commonality course node
+"""
+def find_all_course_nodes(root: CourseNode):
+    all_nodes = []
 
-# - if contaiment and there are instances of n2 outside of n1: then mark n2 as a prerequisite of n1 but don't discard the commonality course node
+    def traverse(node):
+        all_nodes.append(node)
+        for child in node.children:
+            traverse(child)
 
-# - "outside" is defined n1 being the ancestor of n2
+    traverse(root)
+    return all_nodes
 
-# (Although I talk here as commonality lists in tree pairs, I would like there to full consideration of commonality lists for all trees. E.g. this node might appear in A B C, this node might appear in A C...)
 
-# """
+def commonality_algorithm(root_nodes: list[CourseNode]):
 
-# from collections import defaultdict
+    list_of_course_codes = {}
+    
+    # Each root_code: str -> all_course_nodes: list[CourseNode]
+    for root in root_nodes:
+        list_of_course_codes[root.code] = find_all_course_nodes(root)
+    
+    print(list_of_course_codes)
 
-# def get_all_course_nodes(root):
-#     nodes = []
-#     def traverse(node):
-#         if node.label == "Course":
-#             nodes.append(node)
-#         for child in node.children:
-#             traverse(child)
-#     traverse(root)
-#     return nodes
+    unique_set_course_codes = {}
 
-# def is_ancestor(ancestor, descendant):
-#     if ancestor == descendant:
-#         return True
-#     for child in ancestor.children:
-#         if is_ancestor(child, descendant):
-#             return True
-#     return False
+    # For each full list of course codes
+    for root_code, lst in list_of_course_codes.items():
+        
+        # for each node in each full list of course codes
+        #   
+        for node in lst:
+            
+            if node.code not in unique_set_course_codes:
+                unique_set_course_codes[node.code] = set()
+            
+            unique_set_course_codes[node.code].add(root_code)
+    
+    
+    # filter the list of set size > 1
+    filtered_unique_set_course_codes = {k: v for k, v in unique_set_course_codes.items() if len(v) > 1}
+    
+    # Take all possible intersections of commonalities (largest to smallest)
+    combinations = {}
+    pwr_to_sub = {}
 
-# def get_commonality(trees):
-#     all_nodes = {tree_name: get_all_course_nodes(tree) for tree_name, tree in trees.items()}
-#     common_courses = defaultdict(lambda: {'nodes': [], 'trees': set()})
+    for code, root_set in filtered_unique_set_course_codes.items():
 
-#     for tree_name, nodes in all_nodes.items():
-#         for node in nodes:
-#             common_courses[node.code]['nodes'].append(node)
-#             common_courses[node.code]['trees'].add(tree_name)
+        # Put all possible subsets of root_set as keys
+        root_pwr_set = powerset(root_set)
+        
+        # filter powerset to exclude length 1 and exclude itself
+        filtered_root_pwr_set = [subset for subset in root_pwr_set if len(subset) > 1 and frozenset(subset) != frozenset(root_set)]
+        
+        pwr_to_sub[frozenset(root_set)] = filtered_root_pwr_set
 
-#     # Filter out courses that appear in only one tree
-#     common_courses = {code: data for code, data in common_courses.items() if len(data['trees']) > 1}
 
-#     # Check for containment
-#     for course, data in common_courses.items():
-#         for tree_name in data['trees']:
-#             nodes_in_tree = [node for node in data['nodes'] if node in all_nodes[tree_name]]
-#             for i, node1 in enumerate(nodes_in_tree):
-#                 for node2 in nodes_in_tree[i+1:]:
-#                     if is_ancestor(node1, node2):
-#                         # Check if node2 appears outside of node1 in any tree
-#                         appears_outside = any(
-#                             not is_ancestor(n1, n2) 
-#                             for t in data['trees'] 
-#                             for n1, n2 in zip(
-#                                 [n for n in data['nodes'] if n in all_nodes[t] and n.code == node1.code],
-#                                 [n for n in data['nodes'] if n in all_nodes[t] and n.code == node2.code]
-#                             )
-#                         )
-#                         if not appears_outside:
-#                             data['nodes'].remove(node2)
-#                         else:
-#                             node2.is_prerequisite_of = node1
+        # Add code to each filtered_root_pwr_set and also the root (Since the power set excludes the root)
+        for set_combo in filtered_root_pwr_set:
+            f_set_combo = frozenset(set_combo)
+            if f_set_combo not in combinations:
+                combinations[f_set_combo] = set()
+            
+            combinations[f_set_combo].add(code)
+        
+        if frozenset(root_set) not in combinations:
+            combinations[frozenset(root_set)] = set()
+        combinations[frozenset(root_set)].add(code)
 
-#     return common_courses
+    print("Intersections and their course commonalities:", combinations)
+    print("set to its powerset:")
+    for k,v in pwr_to_sub.items():
+        print (k, v)
+
+    # Find the elements that appear in the root_set
+    # Find elements that appear in each of the subsets 
+    # if element appears in root_set AND subset, then delete the one in the subset
+    for intersection, subsets in pwr_to_sub.items():
+        if intersection in combinations:
+            biggest_commonality = combinations[intersection]
+            
+            for subset in subsets:
+                if frozenset(subset) in combinations:
+                    smaller_commonality = combinations[frozenset(subset)]
+                    # Remove courses from smaller_commonality that are in biggest_commonality
+                    filtered_commonality = [course for course in smaller_commonality if course not in biggest_commonality]
+                    if filtered_commonality:
+                        combinations[frozenset(subset)] = filtered_commonality
+                    else:
+                        del combinations[frozenset(subset)]
+    
+    print("New filtered combinations", combinations)
+            
+                            
+
+
+def powerset(s):
+    return [set(combo) for r in range(len(s) + 1) for combo in itertools.combinations(s, r)]
