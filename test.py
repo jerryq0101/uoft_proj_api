@@ -33,20 +33,15 @@ def main():
         driver.verify_connectivity()
 
         with driver.session(database="neo4j") as session:
-            course_1 = "MAT235Y1"
+            course_1 = "MAT309H1"
             course_2 = "MAT237Y1"
             course_3 = "MAT257Y1"
 
-            node_1 = create_full_tree_from_apoc(session, course_1)
-            node_2 = create_full_tree_from_apoc(session, course_2)
-            node_3 = create_full_tree_from_apoc(session, course_3)
+            node_1 = create_prerequisite_tree_from_apoc(session, course_1)
+            node_2 = create_prerequisite_tree_from_apoc(session, course_2)
+            node_3 = create_prerequisite_tree_from_apoc(session, course_3)
 
             print(commonality_algorithm([node_1, node_2, node_3]))
-            
-
-            
-            
-
 
 # def run_apoc_query(tx, course_code: str):
 #     query = """

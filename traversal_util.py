@@ -294,7 +294,9 @@ def completed_courses_set(completed_courses_list: list[str]):
     return completed_courses
 
 
-# BFS works on this, but still don't know how to do the proper visualization yet
+"""
+Output nodes based on their verticies of connection
+"""
 def tree_visualization(root: CourseNode):
     # Create an empty queue and enqueue the root node
     queue = []
@@ -351,7 +353,6 @@ Commonality Algorithm
 
 To mark the common courses between many different course trees.
 
-
 Strategy:
 - List of root nodes of all course trees 
 - Find the list of course nodes that exist in every single course tree
@@ -360,18 +361,15 @@ Strategy:
 - Take the intersection of the different sets
     - e.g. if I want to take the intersection of S_1, S_2. I will loop the map, and see if each item is in both S_1 and S_2
 - Take every possible intersection of different sets and make a list of the data
-
-
-
-
-- also check if one tree is just in the other tree
+- Filter for desired output
 
 """
 def find_all_course_nodes(root: CourseNode):
     all_nodes = []
 
     def traverse(node):
-        all_nodes.append(node)
+        if node.label == "Course":
+            all_nodes.append(node)
         for child in node.children:
             traverse(child)
 
@@ -456,10 +454,49 @@ def commonality_algorithm(root_nodes: list[CourseNode]):
                     else:
                         del combinations[frozenset(subset)]
     
-    print("New filtered combinations", combinations)
-            
-                            
+    return construct_dict(convert_frozenset_serializable(combinations), check_containment(combinations))
 
 
 def powerset(s):
     return [set(combo) for r in range(len(s) + 1) for combo in itertools.combinations(s, r)]
+
+
+def construct_dict(commonality_dict, containment_relationships):
+    return {
+        "commonality_list": commonality_dict,
+        "containment_dict": containment_relationships
+    }
+    
+
+def convert_frozenset_serializable(combinations):
+    # Combinations is a dict with frozenset keys and set values
+    new_dict = {}
+    for key, value in combinations.items():
+        new_dict[str(list(key))] = list(value)
+    
+    return new_dict
+
+
+def check_containment(combinations):
+    
+    containment_dict = {}
+    
+    for key, value in combinations.items():
+        intersecting_courses = set(key)
+        common_courses = value
+        for item in intersecting_courses:
+            if item in common_courses:
+                # this means that all the other elements != item in intersecting courses contains course "item"
+                # add containment notice into dict
+                for other_course in intersecting_courses:
+                    if other_course != item:
+                        if other_course not in containment_dict:
+                            containment_dict[other_course] = set()
+                        containment_dict[other_course].add(item)
+    
+    
+    converted_containment_dict = {}
+    for key, value in containment_dict.items():
+        converted_containment_dict[str(key)] = list(value)
+    
+    return converted_containment_dict

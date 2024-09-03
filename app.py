@@ -1,7 +1,7 @@
 from flask import Flask, request, abort, jsonify
 from flask_restful import Api, Resource, reqparse
 from neo4j_conn import Neo4jConn
-from traversal_util import CourseNode, create_full_tree_from_apoc, create_prerequisite_tree_from_apoc, mark_completion, course_node_to_dict
+from traversal_util import CourseNode, create_full_tree_from_apoc, create_prerequisite_tree_from_apoc, mark_completion, course_node_to_dict, commonality_algorithm
 
 app = Flask(__name__)
 api = Api(app)
@@ -81,22 +81,29 @@ class CourseQuery(Resource):
         tree_choice = data.get("tree_choice", "full")
 
         arr_of_dicts = []
+        
+        arr_tree_nodes = []
 
         with neo4j._driver.session() as session:
             for course in desired_courses:
                 if tree_choice == "full":
                     tree = create_full_tree_from_apoc(session, course)
+                    arr_tree_nodes.append(tree)
                     mark_completion(tree, completed_courses)
                     dict_of_node = course_node_to_dict(tree)
                     arr_of_dicts.append(dict_of_node)
                 else:
                     tree = create_prerequisite_tree_from_apoc(session, course)
+                    arr_tree_nodes.append(tree)
                     mark_completion(tree, completed_courses)
                     dict_of_node = course_node_to_dict(tree)
                     arr_of_dicts.append(dict_of_node)
         
+        commonality_dict = commonality_algorithm(arr_tree_nodes)
+        
         return {
-            "course_trees": arr_of_dicts
+            "course_trees": arr_of_dicts,
+            "commonality": commonality_dict
         }, 200
     
 
