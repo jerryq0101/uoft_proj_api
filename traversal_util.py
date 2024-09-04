@@ -276,6 +276,8 @@ def mark_completion(root: CourseNode, completed_courses_list: list[str]):
             if node.children:
                 if all(child.completed or child.marked for child in node.children):
                     node.ready_to_take = True
+            elif not node.children:
+                node.ready_to_take = True
 
     # Step 1: Mark completed courses
     mark_completed_courses(root)
@@ -378,7 +380,6 @@ def find_all_course_nodes(root: CourseNode):
 
 
 def commonality_algorithm(root_nodes: list[CourseNode]):
-
     list_of_course_codes = {}
     
     # Each root_code: str -> all_course_nodes: list[CourseNode]
