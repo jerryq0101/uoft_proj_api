@@ -9,6 +9,7 @@ api = Api(app)
 # Initialize neo4j connection
 neo4j = Neo4jConn()
 
+# Testing put args from request parser to parse the body of the request
 person_put_args = reqparse.RequestParser()
 person_put_args.add_argument("name", type=str, help="Name of the person")
 person_put_args.add_argument("money", type=int, help="Money of the person")
@@ -17,12 +18,48 @@ person_put_args.add_argument("family", type=int, help="Family member amount of t
 people = {}
 
 class Helloworld(Resource):
+    """
+    This is a test endpoint to see if flask is working
+    """
+
     def get(self, name):
+        """
+        Get Details about a specific person
+
+        Args:
+            name (str): Name of the person
+
+        Returns:
+            dict: ({
+                name: str
+                money: int
+                family: int
+            }): Details about the person
+
+        Raises:
+            404: Person doesn't exist in the dictionary
+        """
         if name not in people:
             abort(404, description="Person not found")
         return people[name]
 
     def put(self, name):
+        """
+        Put Details about a specific person
+
+        Args:
+            name (str): Name of the person
+
+        Returns:
+            dict: ({
+                name: str
+                money: int
+                family: int
+            }): Details about the person
+        
+        Does not raise any exceptions since it's either 
+        creating a new person or updating an existing person
+        """
         args = person_put_args.parse_args()
         people[name] = args
         return people[name], 201
@@ -30,13 +67,25 @@ class Helloworld(Resource):
 tree = {}
 
 class CourseQuery(Resource):
+    """
+    This is the endpoint for UofT Course Queries to Neo4J
+    """
+
     @app.route("/course/<string:course_name>")
     def get(self, course_name):
         """
-        Gets the course details and the full name of the course itself
+        Get Details about a specific course
+
+        Args:
+            course_name (str): Course Code of the course
+
+        Returns:
+            dict: ({
+                code: str
+                full_name: str
+            }): Details about the course
         """
-        print("This request works")
-        # Check # of courses that match with course_name
+
         result = neo4j._driver.execute_query(
             """
             MATCH (c:Course {code: $code})
@@ -44,8 +93,6 @@ class CourseQuery(Resource):
             """,
             code=course_name
         )
-        neo4j.close()
-        print("RESULT", result)
         count = result.records[0]["count"]
         if count == 0:
             abort(404, description="Course not found")
@@ -58,10 +105,7 @@ class CourseQuery(Resource):
                 """,
                 code=course_name
             )
-            neo4j.close()
             full_name = result.records[0]["full_name"]
-            print(full_name)
-            print(result)
             
             return {
                 "code": course_name,
@@ -71,6 +115,32 @@ class CourseQuery(Resource):
 
     @app.route("/course/")
     def post(self):
+        """
+        Get course trees and commonality trees from given inputs.
+
+        Request body:
+        {
+            completed_courses: [str]
+            desired_courses: [str]
+            tree_choice: str
+        }
+
+        Required Fields:
+        - completed_courses (list[str]): List of course codes already completed.
+        - desired_courses (list[str]): List of course codes to generate trees for.
+        - tree_choice (str): Type of tree to generate. Must be either "full" or "prerequisite".
+
+
+        Returns:
+        dict: ({
+            course_trees: [dict]
+            commonality: dict
+        })
+
+        Raises:
+        400: Bad Request - Invalid JSON or no data provided
+
+        """
 
         data = request.json
         if not data:
