@@ -1,9 +1,6 @@
 
 first_year_calc = (["MAT135H1", "MAT136H1"],"MAT137Y1","MAT157Y1")
 
-# Notes:
-# Might have made mistakes where 133 is required to do first year calc
-
 csc336h1_pre = [
     ("CSC148H1", "CSC111H1"),
     (
