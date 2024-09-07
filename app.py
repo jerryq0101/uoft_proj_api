@@ -45,7 +45,12 @@ class Helloworld(Resource):
 
     def put(self, name):
         """
-        Put Details about a specific person
+        Put Details about a specific person. Body should have the following format:
+        {
+            "name": str
+            "money": int
+            "family": int
+        }
 
         Args:
             name (str): Name of the person
@@ -71,7 +76,6 @@ class CourseQuery(Resource):
     This is the endpoint for UofT Course Queries to Neo4J
     """
 
-    @app.route("/course/<string:course_name>")
     def get(self, course_name):
         """
         Get Details about a specific course
@@ -178,7 +182,7 @@ class CourseQuery(Resource):
     
 
 api.add_resource(Helloworld, "/helloworld/<string:name>")
-api.add_resource(CourseQuery, "/course/", "/course/<string:course_name>")
+api.add_resource(CourseQuery, "/course/<string:course_name>")
 
 
 if __name__ == "__main__":

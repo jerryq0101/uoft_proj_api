@@ -1,7 +1,5 @@
 # This file is used to test out algorithms and database connections.
 
-import pprint
-
 from collections import defaultdict
 import os
 from dotenv import load_dotenv, dotenv_values
