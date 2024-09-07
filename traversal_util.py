@@ -337,7 +337,6 @@ def create_prerequisite_tree_from_apoc(session, course_I_want: str):
 
 
 # TREE PROCESSING ALGORITHMS BELOW
-
 def mark_completion(root: CourseNode, completed_courses_list: list[str]):
     """
     Check and mark the completion of a course and junction nodes.
@@ -389,7 +388,6 @@ def mark_completion(root: CourseNode, completed_courses_list: list[str]):
     update_parents(root)
 
 
-
 def completed_courses_set(completed_courses_list: list[str]):
     """
     Simply converts the list of completed courses into a set. Used in mark_completion as a helper function
@@ -402,7 +400,6 @@ def completed_courses_set(completed_courses_list: list[str]):
     """
     completed_courses = set(completed_courses_list)
     return completed_courses
-
 
 
 def tree_visualization(root: CourseNode):
@@ -433,7 +430,6 @@ def tree_visualization(root: CourseNode):
             queue.append((child, count+1))
 
         print("\n")
-
 
 
 def course_node_to_dict(node: CourseNode):
@@ -467,8 +463,8 @@ def course_node_to_dict(node: CourseNode):
     return node_dict
 
 
-# Functions used for the Commonality Algorithm
 
+# Functions used for the Commonality Algorithm
 def find_all_course_nodes(root: CourseNode) -> list[CourseNode]:
     """
     Helper function to find all course nodes in a course tree
