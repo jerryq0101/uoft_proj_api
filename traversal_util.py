@@ -467,14 +467,7 @@ def course_node_to_dict(node: CourseNode):
     return node_dict
 
 
-"""
-Commonality Algorithm
-
-To mark the common courses between many different course trees.
-
-
-
-"""
+# Functions used for the Commonality Algorithm
 
 def find_all_course_nodes(root: CourseNode) -> list[CourseNode]:
     """
