@@ -91,8 +91,8 @@ Should return:
 
 ### Results and Understanding
 
-To briefly summarize for CourseQueries from the frontend:
+To briefly summarize for `app.py`'s `class CourseQuery(Resource)` API:
 
 a GET Request will make a simple Neo4j MATCH (:Course {code: $code}) query, returning a simple dict with course details.
 
-a POST request will process the request body (completed_courses, desired_courses, and tree_choice) to compute common courses and mark completed courses, returning a nested dictionary with a tree structure.
+a POST request will process the request body (completed_courses, desired_courses, and tree_choice) to compute common courses and mark completed courses using `traversal_util.py`, returning a nested dictionary with a tree structure.
