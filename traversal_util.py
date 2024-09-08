@@ -350,6 +350,9 @@ def mark_completion(root: CourseNode, completed_courses_list: list[str]):
     - All of the Course nodes have completed if the course code is in the completed_courses_list
     - A course node will have ready_to_take = True if it has no children or all of its children have completed or marked
 
+    TODO:
+    - Implement marking completion for simple tree such that the ready_to_take for a direct prerequisite leaf is true if the prerequisites are indeed satisfied. Current 
+    implementation only works when the tree is fully constructed.
     """
     completed_courses = completed_courses_set(completed_courses_list)
 
@@ -380,6 +383,7 @@ def mark_completion(root: CourseNode, completed_courses_list: list[str]):
                     node.ready_to_take = True
             elif not node.children:
                 node.ready_to_take = True
+ 
 
     # Step 1: Mark completed courses
     mark_completed_courses(root)
