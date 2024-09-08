@@ -23,6 +23,7 @@ This repository contains scripts that run a REST API to serve course queries to 
 - `neo4j_conn.py` facilitates the initial Neo4j connection for the REST API
 - `traversal_util.py` helps parse Neo4j data, and implements course commonality checking and marking completion
 
+
 ### Setup and Usage
 
 These scripts only should be used if there exists a Neo4j database setup like in [here](https://github.com/jerryq0101/uoft_proj_data_collect).
@@ -30,13 +31,9 @@ These scripts only should be used if there exists a Neo4j database setup like in
 
 Setup directory as below.
 ```
-# Install Dependencies (pip or other)
+# Install Dependencies from requirements.txt (pip or other)
 
-Flask==3.0.3
-Flask-RESTful==0.3.10
-gunicorn==23.0.0
-neo4j==5.23.1
-python-dotenv==1.0.1
+pip install -r requirements.txt
 ```
 
 ```
