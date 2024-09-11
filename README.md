@@ -15,7 +15,17 @@
 
 ### Description
 
-This repository contains scripts that run a REST API to serve course queries to the database for the Frontend ReactJS application. These scripts are part of a larger project aimed at visualizing course prerequisites. (ADD LINKS TO OTHER REPOS)
+This repository contains scripts that run a REST API to serve course queries to the database for the Frontend ReactJS application. These scripts are part of a larger project aimed at visualizing course prerequisites.
+
+### Other Parts
+
+- [Frontend Application](https://github.com/jerryq0101/uoft_proj_frontend)
+- [Scripts to scrape UofT Course Pages](https://github.com/jerryq0101/uoft_proj_data_collect)
+
+### DEMO OF FRONTEND BELOW 👇👇👇
+<a href="https://www.loom.com/share/eb36ca35833e4d8d8d2c9bfcde9f4ceb" target="_blank">
+  <img src="./public/demo_thumb.png" alt="VIDEO DEMO">
+</a>
 
 ### Files and features
 
