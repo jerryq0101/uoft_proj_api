@@ -8,7 +8,7 @@
 ### Table of Contents
 - [Description](#description)
 - [Other Parts of Complete App](#other-parts-of-complete-app)
-- [Demo of Frontend](#demo-of-frontend-below-)
+- [Demo of Frontend](#demo-of-frontend-below)
 - [Files and Features](#files-and-features)
 - [Setup and Usage](#setup-and-usage)
   - [Example 1](#example-1)
