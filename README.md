@@ -6,9 +6,14 @@
 ---
 
 ### Table of Contents
-- [Description](#description)
-- [Files and Features](#Files-and-featuers)
+- Description
+- [Other Parts of App](#other-parts-of-app)
+- [DEMO OF FRONTEND BELOW](#demo-of-frontend-below-)
+- [Files and Features](#files-and-features)
 - [Setup and Usage](#setup-and-usage)
+  - [Example 1](#example-1)
+  - [Example 2](#example-2)
+  - [Example 3](#example-3)
 - [Results and Understanding](#results-and-understanding)
 
 ---
@@ -17,7 +22,7 @@
 
 This repository contains scripts that run a REST API to serve course queries to the database for the Frontend ReactJS application. These scripts are part of a larger project aimed at visualizing course prerequisites.
 
-### Other Parts
+### Other Parts of App
 
 - [Frontend Application](https://github.com/jerryq0101/uoft_proj_frontend)
 - [Scripts to scrape UofT Course Pages](https://github.com/jerryq0101/uoft_proj_data_collect)
