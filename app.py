@@ -184,6 +184,6 @@ class CourseQuery(Resource):
 api.add_resource(Helloworld, "/helloworld/<string:name>")
 api.add_resource(CourseQuery, "/course/", "/course/<string:course_name>")
 
-
+ 
 if __name__ == "__main__":
     app.run()
